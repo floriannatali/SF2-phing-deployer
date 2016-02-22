@@ -28,7 +28,7 @@
   <mkdir dir="${temporary.dir}" />
  </target>
 
-<!-- cloning project from github -->
+<!-- cloning project from git -->
  <target name="gitimport" description="Import project from git in temporary dir" depends="prepare">
   <echo message="Git clone in '${temporary.dir}' " />
   <echo message="command:" />
