@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="BlogWeb deployer" default="rsyncproject" basedir=".">
+ <!-- Load project settings from external file -->
+ <property file="project.properties" />
+
+  <if>
+    <isset property="tag" />
+    <then>
+      <property name="git.tag" value="${tag}" />
+      <echo message="The process will deploy the tag: '${git.tag}'" />
+    </then>
+    <else>
+      <fail msg="'tag' property is missing!" />
+    </else>
+  </if>
+
+<!-- create temporary directory  -->
+ <target name="prepare" description="Create directory to clone git project">
+  <tstamp>
+    <format property="debut.date" pattern="%Y-%m-%d" />
+    <format property="debut.heure" pattern="%H:%M:%S" />
+    <format property="debut.timestamp" pattern="%Y%m%d%H%M%S" />
+  </tstamp>  
+
+  <echo message="Début de l'import à ${debut.date} ${debut.heure}" />
+  <property name="temporary.dir" value = "${tmp.dir}/deploying_${project.name}_${debut.timestamp}" override="true" />
+  <echo message="Create temporary directory: ${temporary.dir}" />
+  <mkdir dir="${temporary.dir}" />
+ </target>
+
+<!-- cloning project from github -->
+ <target name="gitimport" description="Import project from git in temporary dir" depends="prepare">
+  <echo message="Git clone in '${temporary.dir}' " />
+  <echo message="command:" />
+  <echo message="git clone -b ${git.tag} ${git.repo} ${temporary.dir}" />
+  <exec command="git clone -b ${git.tag} ${git.repo} ${temporary.dir}" checkreturn="true" />  
+ </target>
+
+<!-- install SF2 project -->
+ <target name="install" description="Install project before sync (composer, rights, etc.)" depends="gitimport">
+  <echo message="Installing dependencies... ${temporary.dir}" />
+        <exec command="export SYMFONY_ENV=prod"/>
+
+        <echo message="Composer install..." />
+        <composer command="install" composer="${composer.bin}" >
+            <arg value="-n" />
+            <arg value="-o" />
+            <arg value="--no-dev" />
+            <arg value="--no-scripts" />
+            <arg value="--working-dir" />
+            <arg value="${temporary.dir}" />
+        </composer>
+
+        <echo msg="Creating parameters.yml from ${temporary.dir}/app/config/parameters.yml.dist..." />
+        <copy file="${temporary.dir}/app/config/parameters.yml.dist" tofile="${temporary.dir}/app/config/parameters.yml" />
+
+        <echo message="SF2 project installing..." />
+        <exec command="cd ${temporary.dir} &amp;&amp; php bin/console cache:clear --no-warmup --env=prod --no-debug" passthru="true"/>
+	<exec command="cd ${temporary.dir} &amp;&amp; php bin/console doctrine:cache:clear-query --env=prod" passthru="true"/>
+	<exec command="cd ${temporary.dir} &amp;&amp; php bin/console doctrine:cache:clear-result --env=prod" passthru="true"/>
+        <exec command="cd ${temporary.dir} &amp;&amp; php bin/console assets:install --env=prod --no-debug" passthru="true"/>
+        <exec command="cd ${temporary.dir} &amp;&amp; php bin/console assetic:dump --env=prod --no-debug" passthru="true"/>
+        <exec command="cd ${temporary.dir} &amp;&amp; php bin/console cache:warmup --env=prod --no-debug" passthru="true"/>
+             
+	<echo msg="Deleting useless files..." />
+        <delete file="${temporary.dir}/web/app_dev.php" />
+
+        <echo message="Apply chown www-data:www-data on SF2 project..." />
+        <exec command="sudo chown -R www-data:www-data ${temporary.dir}"/> 
+
+</target>
+
+<!-- rsync prepared SF2 project to prod dir -->
+ <target name="rsyncproject" description="rsync between imported project and destination dir" depends="install">
+  <echo message="rsync from ${temporary.dir} to ${destination.dir}" />
+  <echo message="command:" />
+  <echo message="" />
+  <exec command="rsync -az --delete --exclude-from=${rsync.exclude} ${temporary.dir}/ ${destination.dir}" checkreturn="true" />
+ </target>
+
+</project>
