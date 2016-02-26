@@ -58,9 +58,13 @@
 <!-- cloning project from git -->
  <target name="gitimport" description="Import project from git in temporary dir" depends="prepare">
   <echo message="Git clone in '${temporary.dir}' " />
-  <echo message="command:" />
-  <echo message="git clone -b ${git.tag} ${git.repo} ${temporary.dir}" />
-  <exec command="git clone -b ${git.tag} ${git.repo} ${temporary.dir}" checkreturn="true" />  
+     <exec executable="git" passthru="true" checkreturn="true">
+        <arg value="clone"/>
+        <arg value="${git.repo}"/>
+        <arg value="${temporary.dir}"/>
+     </exec>
+     <echo message="Git checkout on '${git.tag}'" />
+     <exec command="cd ${temporary.dir} &amp;&amp; git checkout ${git.tag}" checkreturn="true" />
  </target>
 
 <!-- install SF2 project -->
