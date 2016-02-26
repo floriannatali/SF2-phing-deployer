@@ -14,8 +14,35 @@
     </else>
   </if>
 
+<target name="confirmation_loop" description="loop to cancel deployment">
+    <echo message="Deploying ${project.name} in ..."/>
+    <waitfor maxwait="1" maxwaitunit="second">
+        <available file="ready"/>
+    </waitfor>
+        <echo>5...</echo>
+    <waitfor maxwait="1" maxwaitunit="second">
+        <available file="ready"/>
+    </waitfor>
+    <echo>4...</echo>
+    <waitfor maxwait="1" maxwaitunit="second">
+        <available file="ready"/>
+    </waitfor>
+    <echo>3...</echo>
+    <waitfor maxwait="1" maxwaitunit="second">
+        <available file="ready"/>
+    </waitfor><echo>2...</echo>
+    <waitfor maxwait="1" maxwaitunit="second">
+        <available file="ready"/>
+    </waitfor>
+    <echo>1...</echo>
+    <waitfor maxwait="1" maxwaitunit="second">
+        <available file="ready"/>
+    </waitfor>
+    <echo>GO!</echo>
+</target>
+
 <!-- create temporary directory  -->
- <target name="prepare" description="Create directory to clone git project">
+ <target name="prepare" description="Create directory to clone git project" depends="confirmation_loop">
   <tstamp>
     <format property="debut.date" pattern="%Y-%m-%d" />
     <format property="debut.heure" pattern="%H:%M:%S" />
