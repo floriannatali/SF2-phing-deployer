@@ -56,8 +56,8 @@
 
         <echo message="SF2 project installing..." />
         <exec command="cd ${temporary.dir} &amp;&amp; php bin/console cache:clear --no-warmup --env=prod --no-debug" passthru="true"/>
-	<exec command="cd ${temporary.dir} &amp;&amp; php bin/console doctrine:cache:clear-query --env=prod" passthru="true"/>
-	<exec command="cd ${temporary.dir} &amp;&amp; php bin/console doctrine:cache:clear-result --env=prod" passthru="true"/>
+	    <exec command="cd ${temporary.dir} &amp;&amp; php bin/console doctrine:cache:clear-query --env=prod" passthru="true"/>
+	    <exec command="cd ${temporary.dir} &amp;&amp; php bin/console doctrine:cache:clear-result --env=prod" passthru="true"/>
         <exec command="cd ${temporary.dir} &amp;&amp; php bin/console assets:install --env=prod --no-debug" passthru="true"/>
         <exec command="cd ${temporary.dir} &amp;&amp; php bin/console assetic:dump --env=prod --no-debug" passthru="true"/>
         <exec command="cd ${temporary.dir} &amp;&amp; php bin/console cache:warmup --env=prod --no-debug" passthru="true"/>
@@ -77,5 +77,6 @@
   <echo message="" />
   <exec command="rsync -az --delete --exclude-from=${rsync.exclude} ${temporary.dir}/ ${destination.dir}" checkreturn="true" />
  </target>
+
 
 </project>
